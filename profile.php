@@ -21,23 +21,29 @@ $hasPhoto=(!empty($criminal['photo'])&&file_exists($criminal['photo']));
  <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
   <?php if($hasPhoto): ?><img src="<?=htmlspecialchars($criminal['photo'])?>" class="profile-photo" alt=""><?php else: ?><img src="assets/anon.svg" class="profile-photo" alt=""><?php endif; ?>
   <div style="flex:1;min-width:200px">
-   <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:1px">Criminal #<?=str_pad($id,4,'0',STR_PAD_LEFT)?></div>
-   <h2 style="font-size:22px;font-weight:800;margin:4px 0 8px"><?=htmlspecialchars($criminal['first_name'].' '.$criminal['last_name'])?></h2>
-   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <span class="badge <?=$stb?>"><?=$criminal['status']?></span>
-    <?php if($criminal['nationality']): ?><span class="badge b-muted"><?=htmlspecialchars($criminal['nationality'])?></span><?php endif; ?>
+   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+    <div>
+     <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:1px">Criminal #<?=str_pad($id,4,'0',STR_PAD_LEFT)?></div>
+     <h2 style="font-size:22px;font-weight:800;margin:4px 0 8px"><?=htmlspecialchars($criminal['first_name'].' '.$criminal['last_name'])?></h2>
+     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge <?=$stb?>"><?=$criminal['status']?></span>
+      <?php if($criminal['nationality']): ?><span class="badge b-muted"><?=htmlspecialchars($criminal['nationality'])?></span><?php endif; ?>
+     </div>
+    </div>
+    <div style="display:flex;gap:8px">
+     <?php if(can('edit')): ?><a href="edit_criminal.php?id=<?=$id?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i> Edit</a><?php endif; ?>
+     <?php if(can('delete')): ?><button onclick="confirmDelete('delete_criminal.php?id=<?=$id?>','Delete Criminal?','Permanently remove <?=htmlspecialchars(addslashes($criminal['first_name'].' '.$criminal['last_name']))?> and all records?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Delete</button><?php endif; ?>
+    </div>
    </div>
    <div class="profile-meta" style="margin-top:14px">
     <div class="meta-item"><label>Date of Birth</label><span><?=fmt_date($criminal['date_of_birth'])?></span></div>
     <div class="meta-item"><label>Gender</label><span><?=htmlspecialchars($criminal['gender']??'—')?></span></div>
     <div class="meta-item"><label>Phone</label><span><?=htmlspecialchars($criminal['phone']??'—')?></span></div>
-    <div class="meta-item"><label>Address</label><span><?=htmlspecialchars($criminal['address']??'—')?></span></div>
    </div>
+   <?php if(!empty($criminal['address'])): ?>
+   <div style="margin-top:10px"><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Address</label><span style="font-size:13px;color:var(--txt);font-weight:500"><?=htmlspecialchars($criminal['address'])?></span></div>
+   <?php endif; ?>
   </div>
- </div>
- <div style="position:absolute;bottom:16px;right:16px;display:flex;gap:8px">
-  <?php if(can('edit')): ?><a href="edit_criminal.php?id=<?=$id?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i> Edit</a><?php endif; ?>
-  <?php if(can('delete')): ?><button onclick="confirmDelete('delete_criminal.php?id=<?=$id?>','Delete Criminal?','Permanently remove <?=htmlspecialchars(addslashes($criminal['first_name'].' '.$criminal['last_name']))?> and all records?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Delete</button><?php endif; ?>
  </div>
 </div>
 

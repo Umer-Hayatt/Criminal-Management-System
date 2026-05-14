@@ -9,8 +9,7 @@ $_page = basename($_SERVER['PHP_SELF']);
 $_notifs = [];
 $_nres = mysqli_query($conn, "SELECT ch.hearing_id, ch.hearing_date, ch.case_id FROM Court_Hearing ch WHERE ch.hearing_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY) AND ch.verdict='Pending' LIMIT 5");
 while($_nr = mysqli_fetch_assoc($_nres)) $_notifs[] = ['type'=>'hearing','msg'=>'Upcoming hearing on '.fmt_date($_nr['hearing_date']),'url'=>'case_profile.php?id='.$_nr['case_id']];
-$_wres = mysqli_query($conn, "SELECT warrant_id, case_id FROM Warrant WHERE expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 14 DAY) AND status='Active' LIMIT 3");
-while($_wr = mysqli_fetch_assoc($_wres)) $_notifs[] = ['type'=>'warrant','msg'=>'Warrant #'.$_wr['warrant_id'].' expiring soon','url'=>'warrants.php'];
+
 $_notif_count = count($_notifs);
 ?>
 <!DOCTYPE html>
@@ -54,7 +53,6 @@ $_notif_count = count($_notifs);
   <div class="nav-group-label"><span>Cases</span></div>
   <a href="cases.php" class="nav-item <?= in_array($_page,['cases.php','case_profile.php'])?'active':'' ?>"><i data-lucide="folder-open"></i><span>All Cases</span></a>
   <a href="hearings.php" class="nav-item <?= $_page==='hearings.php'?'active':'' ?>"><i data-lucide="scale"></i><span>Court Hearings</span></a>
-  <a href="warrants.php" class="nav-item <?= $_page==='warrants.php'?'active':'' ?>"><i data-lucide="file-warning"></i><span>Warrants</span></a>
  </div>
 
  <div class="nav-group">

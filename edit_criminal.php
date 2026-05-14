@@ -24,7 +24,7 @@ $r=mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM Criminal WHERE criminal_
 if(!$r){header("Location: records_criminals.php");exit();}
 $pageTitle='Edit Criminal';
 include 'header.php';
-$photo=$r['photo']??'assets/anon.png';
+$photo=$r['photo']??'assets/anon.svg';
 ?>
 <div class="breadcrumb"><a href="records_criminals.php">Criminals</a><i data-lucide="chevron-right"></i><a href="profile.php?id=<?=$id?>"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></a><i data-lucide="chevron-right"></i><span>Edit</span></div>
 <div class="page-hdr">
@@ -35,7 +35,7 @@ $photo=$r['photo']??'assets/anon.png';
 <div class="card">
  <div class="card-title"><i data-lucide="camera"></i> Profile Photo</div>
  <div class="photo-upload-box">
-  <div class="photo-preview"><img src="<?=htmlspecialchars($photo)?>" id="previewImg" alt="Preview" onerror="this.src='assets/anon.png'"></div>
+  <div class="photo-preview"><img src="<?=htmlspecialchars($photo)?>" id="previewImg" alt="Preview" onerror="this.src='assets/anon.svg'"></div>
   <div>
    <label class="upload-btn" for="photo"><i data-lucide="camera"></i> Change Photo</label>
    <input type="file" id="photo" name="photo" accept="image/*" hidden>

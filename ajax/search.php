@@ -46,9 +46,5 @@ if($type==='all'||$type==='hearing'){
  while($r=mysqli_fetch_assoc($res)) $results[]=$r;
 }
 
-if($type==='all'||$type==='warrant'){
- $res=mysqli_query($conn,"SELECT 'warrant' AS entity_type,w.warrant_id AS id,CONCAT('Warrant #',w.warrant_id,' (',w.type,')') AS name,w.status,NULL AS photo,DATE_FORMAT(w.expiry_date,'%d %b %Y') AS extra FROM Warrant w WHERE (w.type LIKE '$q' OR w.status LIKE '$q') LIMIT 10");
- while($r=mysqli_fetch_assoc($res)) $results[]=$r;
-}
 
 echo json_encode(['ok'=>true,'results'=>$results]);

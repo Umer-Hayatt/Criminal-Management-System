@@ -72,7 +72,7 @@ include 'header.php';
 <div class="card">
  <div class="card-title"><i data-lucide="camera"></i> Profile Photo</div>
  <div class="photo-upload-box">
-  <div class="photo-preview"><img src="assets/anon.png" id="previewImg" alt="Preview"></div>
+  <div class="photo-preview"><img src="assets/anon.svg" id="previewImg" alt="Preview"></div>
   <div>
    <label class="upload-btn" for="photo"><i data-lucide="camera"></i> Upload Photo</label>
    <input type="file" id="photo" name="photo" accept="image/*" hidden>

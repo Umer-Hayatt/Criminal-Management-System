@@ -69,9 +69,24 @@ include 'header.php';
 
 <!-- OVERVIEW TAB -->
 <div class="tab-pane" id="tab-overview">
-<?php if(can('edit')): ?>
 <div class="section-card">
- <div class="section-hdr"><h3>Edit Case</h3><button class="btn btn-ghost btn-sm" onclick="saveCase()"><i data-lucide="save"></i> Save</button></div>
+ <div class="section-hdr"><h3>Case Details</h3><?php if(can('edit')): ?><button class="btn btn-ghost btn-sm" onclick="toggleForm('editCaseForm')"><i data-lucide="edit-2"></i> Edit Case</button><?php endif; ?></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+  <div><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Title</label><span style="font-size:14px;color:var(--txt);font-weight:600"><?=htmlspecialchars($case['title']?:'Case #'.$id)?></span></div>
+  <div><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Status</label><span class="badge <?=$cs?>"><?=$case['case_status']?></span></div>
+  <div><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Open Date</label><span style="color:var(--txt)"><?=fmt_date($case['open_date'])?></span></div>
+  <div><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Close Date</label><span style="color:var(--txt)"><?=$case['close_date']?fmt_date($case['close_date']):'—'?></span></div>
+  <?php if(!empty($case['lead_first'])): ?><div><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Lead Officer</label><span style="color:var(--txt)"><?=htmlspecialchars($case['lead_first'].' '.$case['lead_last'])?></span></div><?php endif; ?>
+  <div><label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block">Crime Type</label><span style="color:var(--txt)"><?=htmlspecialchars($case['crime_type'])?></span></div>
+ </div>
+ <div style="border-top:1px solid var(--border);padding-top:12px">
+  <label style="font-size:10px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Description / Notes</label>
+  <p style="color:var(--txt-mid);font-size:13px;line-height:1.7"><?=htmlspecialchars($case['description']?:'No case description available.')?></p>
+ </div>
+</div>
+<?php if(can('edit')): ?>
+<div id="editCaseForm" class="section-card" style="display:none;margin-top:12px">
+ <div class="section-hdr"><h3>Edit Case</h3><button class="btn btn-primary btn-sm" onclick="saveCase()"><i data-lucide="save"></i> Save Changes</button></div>
  <div id="caseToast" style="display:none;margin-bottom:8px" class="flash flash-success"><i data-lucide="check-circle"></i> Saved!</div>
  <div class="form-grid">
   <div class="form-group"><label>Title</label><input id="c_title" value="<?=htmlspecialchars($case['title']??'')?>"></div>
@@ -81,12 +96,7 @@ include 'header.php';
   <div class="form-group"><label>Close Date</label><input type="date" id="c_close" value="<?=$case['close_date']??''?>"></div>
   <div class="form-group full"><label>Notes</label><textarea id="c_desc"><?=htmlspecialchars($case['description']??'')?></textarea></div>
  </div>
- <div style="margin-top:18px;color:var(--txt-mid)">
-  <?=htmlspecialchars($case['description']?:'No case description available.')?>
- </div>
 </div>
-<?php else: ?>
-<div class="section-card"><p style="color:var(--txt-mid)"><?=htmlspecialchars($case['description']??'No notes.')?></p></div>
 <?php endif; ?>
 </div>
 
