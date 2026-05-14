@@ -1,0 +1,11 @@
+uploads/criminals/*
+uploads/officers/*
+uploads/prisons/*
+uploads/evidence/*
+!uploads/criminals/.gitkeep
+!uploads/officers/.gitkeep
+!uploads/prisons/.gitkeep
+!uploads/evidence/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
