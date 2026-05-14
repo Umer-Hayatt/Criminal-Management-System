@@ -117,6 +117,8 @@ tbody tr:hover{background:rgba(47,129,247,.04);}
 tbody td{padding:10px 14px;vertical-align:middle;font-size:13px;color:var(--txt);}
 .td-actions{display:flex;gap:5px;flex-wrap:wrap;}
 .empty-row td{text-align:center;padding:40px;color:var(--txt-soft);font-size:13px;}
+tbody td a{color:var(--txt);font-weight:600;text-decoration:none;font-family:inherit;transition:var(--trans);}
+tbody td a:hover{color:var(--accent);}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;}

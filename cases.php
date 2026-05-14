@@ -1,39 +1,47 @@
 <?php
 include 'db.php';
-$pageTitle='All Cases';
+$pageTitle='Cases';
 include 'header.php';
+$total =mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record"))[0];
+$open  =mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record WHERE case_status='Open'"))[0];
+$inv   =mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record WHERE case_status='Under Investigation'"))[0];
+$closed=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record WHERE case_status='Closed'"))[0];
+$cases =mysqli_query($conn,"SELECT c.*,cr.crime_type,(SELECT COUNT(*) FROM case_criminals cc WHERE cc.case_id=c.case_id) AS crim_count,(SELECT COUNT(*) FROM case_officers co WHERE co.case_id=c.case_id) AS off_count FROM Case_Record c JOIN Crime cr ON c.crime_id=cr.crime_id ORDER BY c.case_id ASC");
 ?>
 <div class="page-hdr">
  <div class="page-hdr-left">
   <div class="page-hdr-icon"><i data-lucide="folder-open"></i></div>
-  <div><h2>Cases</h2><p>All investigation cases</p></div>
+  <div><h2>All Cases</h2><p><?=$total?> total cases</p></div>
  </div>
- <a href="register_case.php" class="btn btn-primary"><i data-lucide="folder-plus"></i> New Case</a>
+ <?php if(can('edit')): ?><a href="register_case.php" class="btn btn-primary"><i data-lucide="plus"></i> New Case</a><?php endif; ?>
+</div>
+<div class="summary-pills">
+ <div class="spill sp-total"><span><?=$total?></span> All</div>
+ <div class="spill sp-wanted"><span><?=$open?></span> Open</div>
+ <div class="spill sp-imprisoned"><span><?=$inv?></span> Investigating</div>
+ <div class="spill sp-released"><span><?=$closed?></span> Closed</div>
 </div>
 <div class="card">
  <div class="tbl-wrap"><table>
-  <thead><tr><th>Case #</th><th>Crime Type</th><th>Status</th><th>Criminals</th><th>Officers</th><th>Opened</th><th>Actions</th></tr></thead>
+  <thead><tr><th>#</th><th>Case ID</th><th>Title / Crime</th><th>Status</th><th>Criminals</th><th>Officers</th><th>Opened</th><th>Actions</th></tr></thead>
   <tbody>
-  <?php
-  $res=mysqli_query($conn,"SELECT c.*,cr.crime_type FROM Case_Record c JOIN Crime cr ON c.crime_id=cr.crime_id ORDER BY c.case_id DESC");
-  if(mysqli_num_rows($res)===0): ?>
-  <tr class="empty-row"><td colspan="7"><i data-lucide="folder-open" style="width:24px;height:24px;margin:0 auto 8px;display:block;opacity:.3"></i>No cases yet. <a href="register_case.php" style="color:var(--accent)">Open one now</a></td></tr>
-  <?php else: while($r=mysqli_fetch_assoc($res)):
+  <?php $row=0; if(mysqli_num_rows($cases)===0): ?>
+  <tr class="empty-row"><td colspan="8">No cases found.</td></tr>
+  <?php else: while($r=mysqli_fetch_assoc($cases)): $row++;
    $cs=match($r['case_status']){'Open'=>'b-orange','Closed'=>'b-green','Under Investigation'=>'b-blue',default=>'b-muted'};
-   $crim_cnt=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(DISTINCT cc.criminal_id) FROM Criminal_Crime cc WHERE cc.crime_id={$r['crime_id']}"))[0];
-   $off_cnt=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Officer_Case WHERE case_id={$r['case_id']}"))[0];
+   $label=$r['title']?htmlspecialchars($r['title']):'<span style="color:var(--txt-soft)">Case #'.str_pad($r['case_id'],4,'0',STR_PAD_LEFT).'</span>';
   ?>
   <tr>
-   <td><strong>#<?=$r['case_id']?></strong></td>
-   <td><?=htmlspecialchars($r['crime_type'])?></td>
+   <td style="color:var(--txt-soft);font-size:12px"><?=$row?></td>
+   <td><strong style="color:var(--accent)">Case #<?=str_pad($r['case_id'],4,'0',STR_PAD_LEFT)?></strong></td>
+   <td><?=$label?></td>
    <td><span class="badge <?=$cs?>"><?=$r['case_status']?></span></td>
-   <td><span class="badge b-muted"><?=$crim_cnt?> criminal<?=$crim_cnt!=1?'s':''?></span></td>
-   <td><span class="badge b-blue"><?=$off_cnt?> officer<?=$off_cnt!=1?'s':''?></span></td>
+   <td><span class="badge b-red"><?=$r['crim_count']?></span></td>
+   <td><span class="badge b-blue"><?=$r['off_count']?></span></td>
    <td><?=fmt_date($r['open_date'])?></td>
    <td><div class="td-actions">
     <a href="case_profile.php?id=<?=$r['case_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="eye"></i> View</a>
-    <?php if(can('edit')): ?><a href="edit_case.php?id=<?=$r['case_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i></a><?php endif; ?>
-    <?php if(can('delete')): ?><button onclick="confirmDelete('delete_case.php?id=<?=$r['case_id']?>','Delete Case?','Remove Case #<?=$r['case_id']?> and all related records?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i></button><?php endif; ?>
+    <?php if(can('delete')): ?><button onclick="confirmDelete('delete_case.php?id=<?=$r['case_id']?>','Delete Case #<?=$r['case_id']?>?','Remove Case #<?=$r['case_id']?> and all associated records?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i></button><?php endif; ?>
    </div></td>
   </tr>
   <?php endwhile; endif; ?>

@@ -2,16 +2,37 @@
 include 'db.php';
 $id=intval($_GET['id']);
 if(!$id){header("Location: cases.php");exit();}
-$case=mysqli_fetch_assoc(mysqli_query($conn,"SELECT c.*,cr.crime_type FROM Case_Record c JOIN Crime cr ON c.crime_id=cr.crime_id WHERE c.case_id=$id"));
+$case=mysqli_fetch_assoc(mysqli_query($conn,"SELECT c.*,cr.crime_type,lo.first_name AS lead_first, lo.last_name AS lead_last FROM Case_Record c JOIN Crime cr ON c.crime_id=cr.crime_id LEFT JOIN Officer lo ON c.lead_officer_id=lo.officer_id WHERE c.case_id=$id"));
 if(!$case){set_flash('error','Case not found.');header("Location: cases.php");exit();}
-$officers=mysqli_query($conn,"SELECT o.*,co.role AS oc_role FROM Officer o JOIN case_officers co ON o.officer_id=co.officer_id WHERE co.case_id=$id");
-$criminals=mysqli_query($conn,"SELECT c.*,cc.role AS cr_role FROM Criminal c JOIN case_criminals cc ON c.criminal_id=cc.criminal_id WHERE cc.case_id=$id");
-$victims=mysqli_query($conn,"SELECT * FROM Victim WHERE case_id=$id");
-$suspects=mysqli_query($conn,"SELECT * FROM Suspect WHERE case_id=$id");
-$hearings=mysqli_query($conn,"SELECT * FROM Court_Hearing WHERE case_id=$id ORDER BY hearing_date DESC");
-$warrants=mysqli_query($conn,"SELECT w.*,CONCAT(c.first_name,' ',c.last_name) AS cname FROM Warrant w LEFT JOIN Criminal c ON w.criminal_id=c.criminal_id WHERE w.case_id=$id ORDER BY w.issued_date DESC");
-$all_officers=mysqli_query($conn,"SELECT * FROM Officer ORDER BY first_name");
-$all_criminals=mysqli_query($conn,"SELECT * FROM Criminal ORDER BY first_name");
+$officers=[];
+if($res=mysqli_query($conn,"SELECT o.*,co.role AS oc_role FROM Officer o JOIN case_officers co ON o.officer_id=co.officer_id WHERE co.case_id=$id")){
+ while($r=mysqli_fetch_assoc($res)) $officers[]=$r;
+}
+$criminals=[];
+if($res=mysqli_query($conn,"SELECT c.*,cc.role AS cr_role FROM Criminal c JOIN case_criminals cc ON c.criminal_id=cc.criminal_id WHERE cc.case_id=$id")){
+ while($r=mysqli_fetch_assoc($res)) $criminals[]=$r;
+}
+$victims=[];
+if($res=mysqli_query($conn,"SELECT * FROM Victim WHERE case_id=$id")){
+ while($r=mysqli_fetch_assoc($res)) $victims[]=$r;
+}
+$suspects=[];
+if($res=mysqli_query($conn,"SELECT * FROM Suspect WHERE case_id=$id")){
+ while($r=mysqli_fetch_assoc($res)) $suspects[]=$r;
+}
+$hearings=[];
+if($res=mysqli_query($conn,"SELECT * FROM Court_Hearing WHERE case_id=$id ORDER BY hearing_date DESC")){
+ while($r=mysqli_fetch_assoc($res)) $hearings[]=$r;
+}
+
+$all_officers=[];
+if($res=mysqli_query($conn,"SELECT * FROM Officer ORDER BY first_name")){
+ while($r=mysqli_fetch_assoc($res)) $all_officers[]=$r;
+}
+$all_criminals=[];
+if($res=mysqli_query($conn,"SELECT * FROM Criminal ORDER BY first_name")){
+ while($r=mysqli_fetch_assoc($res)) $all_criminals[]=$r;
+}
 $cs=match($case['case_status']){'Open'=>'b-orange','Closed'=>'b-green','Under Investigation'=>'b-blue',default=>'b-muted'};
 $pageTitle='Case #'.$id;
 include 'header.php';
@@ -21,11 +42,12 @@ include 'header.php';
  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
   <div>
    <div style="font-size:11px;color:var(--txt-soft);text-transform:uppercase;letter-spacing:1px">Case #<?=str_pad($id,4,'0',STR_PAD_LEFT)?></div>
-   <h2 style="font-size:20px;font-weight:800;margin:4px 0 8px"><?=htmlspecialchars($case['title']?:'Case #'.$id.' — '.$case['crime_type'])?></h2>
+   <h2 style="font-size:20px;font-weight:800;margin:4px 0 8px"><?=htmlspecialchars($case['title']?:'Case #'.$id)?></h2>
    <div style="display:flex;gap:8px;flex-wrap:wrap">
     <span class="badge <?=$cs?>"><?=$case['case_status']?></span>
     <span class="badge b-muted">Opened <?=fmt_date($case['open_date'])?></span>
     <?php if($case['close_date']): ?><span class="badge b-green">Closed <?=fmt_date($case['close_date'])?></span><?php endif; ?>
+    <?php if(!empty($case['lead_first'])): ?><span class="badge b-blue">Lead: <?=htmlspecialchars($case['lead_first'].' '.$case['lead_last'])?></span><?php endif; ?>
    </div>
   </div>
   <div style="display:flex;gap:8px">
@@ -42,7 +64,7 @@ include 'header.php';
  <button class="tab-btn" data-tab="victims"   onclick="switchTab('victims','tabGroup')"><i data-lucide="heart"></i> Victims</button>
  <button class="tab-btn" data-tab="suspects"  onclick="switchTab('suspects','tabGroup')"><i data-lucide="user-x"></i> Suspects</button>
  <button class="tab-btn" data-tab="hearings"  onclick="switchTab('hearings','tabGroup')"><i data-lucide="scale"></i> Hearings</button>
- <button class="tab-btn" data-tab="warrants"  onclick="switchTab('warrants','tabGroup')"><i data-lucide="file-warning"></i> Warrants</button>
+
 </div>
 
 <!-- OVERVIEW TAB -->
@@ -54,9 +76,13 @@ include 'header.php';
  <div class="form-grid">
   <div class="form-group"><label>Title</label><input id="c_title" value="<?=htmlspecialchars($case['title']??'')?>"></div>
   <div class="form-group"><label>Status</label><select id="c_status"><?php foreach(['Open','Under Investigation','Closed'] as $s): ?><option <?=$case['case_status']===$s?'selected':''?>><?=$s?></option><?php endforeach; ?></select></div>
+  <div class="form-group"><label>Lead Officer</label><select id="c_lead"><option value="">-- None --</option><?php foreach($all_officers as $off): ?><option value="<?=$off['officer_id']?>" <?=$case['lead_officer_id']==$off['officer_id']?'selected':''?>><?=htmlspecialchars($off['first_name'].' '.$off['last_name'])?></option><?php endforeach; ?></select></div>
   <div class="form-group"><label>Open Date</label><input type="date" id="c_open" value="<?=$case['open_date']?>"></div>
   <div class="form-group"><label>Close Date</label><input type="date" id="c_close" value="<?=$case['close_date']??''?>"></div>
   <div class="form-group full"><label>Notes</label><textarea id="c_desc"><?=htmlspecialchars($case['description']??'')?></textarea></div>
+ </div>
+ <div style="margin-top:18px;color:var(--txt-mid)">
+  <?=htmlspecialchars($case['description']?:'No case description available.')?>
  </div>
 </div>
 <?php else: ?>
@@ -68,19 +94,22 @@ include 'header.php';
 <div class="tab-pane" id="tab-criminals">
 <div class="section-card">
  <div class="section-hdr"><h3>Linked Criminals</h3><?php if(can('edit')): ?><button class="btn btn-ghost btn-sm" onclick="openSearch('criminal')"><i data-lucide="plus"></i> Add Criminal</button><?php endif; ?></div>
- <div id="criminals-list">
- <?php while($r=mysqli_fetch_assoc($criminals)):
-  $b=match($r['status']){'Imprisoned'=>'b-red','Released'=>'b-green','Wanted'=>'b-orange',default=>'b-blue'};
- ?>
- <div class="affil-chip" id="cc-<?=$r['criminal_id']?>">
-  <a href="profile.php?id=<?=$r['criminal_id']?>" style="display:flex;align-items:center;gap:10px;text-decoration:none;flex:1">
-   <?=avatar_html($r['first_name'],$r['last_name'],$r['photo']??null,36)?>
-   <div><strong style="color:var(--txt)"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></strong><br><span class="badge <?=$b?>" style="margin-top:2px"><?=$r['status']?></span></div>
-  </a>
-  <?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeAffil('criminal',<?=$r['criminal_id']?>)"><i data-lucide="x"></i></button><?php endif; ?>
- </div>
- <?php endwhile; ?>
- </div>
+ <div class="tbl-wrap"><table>
+  <thead><tr><th>Avatar</th><th>Name</th><th>Status</th><th>Role</th><th></th></tr></thead>
+  <tbody>
+  <?php if(empty($criminals)): ?>
+  <tr class="empty-row"><td colspan="5">No linked criminals.</td></tr>
+  <?php else: foreach($criminals as $r): $b=match($r['status']){'Imprisoned'=>'b-red','Released'=>'b-green','Wanted'=>'b-orange',default=>'b-blue'}; ?>
+  <tr id="cc-<?=$r['criminal_id']?>">
+   <td><img src="<?=(!empty($r['photo'])&&file_exists($r['photo']))?$r['photo']:'assets/anon.svg'?>" class="tbl-avatar" alt="" onerror="this.src='assets/anon.svg'"></td>
+   <td><a href="profile.php?id=<?=$r['criminal_id']?>" style="color:var(--txt);font-weight:600;text-decoration:none;font-family:inherit"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></a></td>
+   <td><span class="badge <?=$b?>"><?=htmlspecialchars($r['status']??'—')?></span></td>
+   <td><?=htmlspecialchars($r['cr_role']??'Suspect')?></td>
+   <td><?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeAffil('criminal',<?=$r['criminal_id']?>)"><i data-lucide="x"></i></button><?php endif; ?></td>
+  </tr>
+  <?php endforeach; endif; ?>
+  </tbody>
+ </table></div>
 </div>
 </div>
 
@@ -88,17 +117,22 @@ include 'header.php';
 <div class="tab-pane" id="tab-officers">
 <div class="section-card">
  <div class="section-hdr"><h3>Assigned Officers</h3><?php if(can('edit')): ?><button class="btn btn-ghost btn-sm" onclick="openSearch('officer')"><i data-lucide="plus"></i> Assign Officer</button><?php endif; ?></div>
- <div id="officers-list">
- <?php while($r=mysqli_fetch_assoc($officers)): ?>
- <div class="affil-chip" id="oc-<?=$r['officer_id']?>">
-  <a href="officer_profile.php?id=<?=$r['officer_id']?>" style="display:flex;align-items:center;gap:10px;text-decoration:none;flex:1">
-   <?=avatar_html($r['first_name'],$r['last_name'],$r['photo']??null,36)?>
-   <div><strong style="color:var(--txt)"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></strong><br><span class="badge b-blue" style="margin-top:2px"><?=htmlspecialchars($r['oc_role']??'Investigator')?></span></div>
-  </a>
-  <?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeAffil('officer',<?=$r['officer_id']?>)"><i data-lucide="x"></i></button><?php endif; ?>
- </div>
- <?php endwhile; ?>
- </div>
+ <div class="tbl-wrap"><table>
+  <thead><tr><th>Avatar</th><th>Name</th><th>Badge</th><th>Rank</th><th></th></tr></thead>
+  <tbody>
+  <?php if(empty($officers)): ?>
+  <tr class="empty-row"><td colspan="5">No officers assigned.</td></tr>
+  <?php else: foreach($officers as $r): ?>
+  <tr id="oc-<?=$r['officer_id']?>">
+   <td><img src="<?=(!empty($r['photo'])&&file_exists($r['photo']))?$r['photo']:'assets/anon.svg'?>" class="tbl-avatar" alt="" onerror="this.src='assets/anon.svg'"></td>
+   <td><a href="officer_profile.php?id=<?=$r['officer_id']?>" style="color:var(--txt);font-weight:600;text-decoration:none;font-family:inherit"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></a></td>
+   <td><span class="badge b-blue"><?=htmlspecialchars($r['badge_number']??'—')?></span></td>
+   <td><?=htmlspecialchars($r['rank']??'—')?></td>
+   <td><?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeAffil('officer',<?=$r['officer_id']?>)"><i data-lucide="x"></i></button><?php endif; ?></td>
+  </tr>
+  <?php endforeach; endif; ?>
+  </tbody>
+ </table></div>
 </div>
 </div>
 
@@ -112,15 +146,21 @@ include 'header.php';
   <button class="btn btn-primary btn-sm" onclick="addVictim()"><i data-lucide="save"></i> Add</button>
  </div>
  <?php endif; ?>
- <div id="victims-list">
- <?php while($r=mysqli_fetch_assoc($victims)): ?>
- <div class="affil-chip" id="vc-<?=$r['victim_id']?>">
-  <?=avatar_html($r['first_name'],$r['last_name'],null,36)?>
-  <div style="flex:1"><strong style="color:var(--txt)"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></strong><br><span style="font-size:11px;color:var(--txt-mid)"><?=htmlspecialchars($r['phone']??'')?></span></div>
-  <?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeVictim(<?=$r['victim_id']?>)"><i data-lucide="x"></i></button><?php endif; ?>
- </div>
- <?php endwhile; ?>
- </div>
+ <div class="tbl-wrap"><table>
+  <thead><tr><th>Name</th><th>Phone</th><th>Statement</th><th></th></tr></thead>
+  <tbody>
+  <?php if(empty($victims)): ?>
+  <tr class="empty-row"><td colspan="4">No victims added.</td></tr>
+  <?php else: foreach($victims as $r): ?>
+  <tr id="vc-<?=$r['victim_id']?>">
+   <td><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></td>
+   <td><?=htmlspecialchars($r['phone']??'—')?></td>
+   <td><?=htmlspecialchars($r['statement']??'—')?></td>
+   <td><?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeVictim(<?=$r['victim_id']?>)"><i data-lucide="x"></i></button><?php endif; ?></td>
+  </tr>
+  <?php endforeach; endif; ?>
+  </tbody>
+ </table></div>
 </div>
 </div>
 
@@ -134,15 +174,21 @@ include 'header.php';
   <button class="btn btn-primary btn-sm" onclick="addSuspect()"><i data-lucide="save"></i> Add</button>
  </div>
  <?php endif; ?>
- <div id="suspects-list">
- <?php while($r=mysqli_fetch_assoc($suspects)): ?>
- <div class="affil-chip" id="sc-<?=$r['suspect_id']?>">
-  <?=avatar_html($r['first_name'],$r['last_name'],null,36)?>
-  <div style="flex:1"><strong style="color:var(--txt)"><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></strong><br><span style="font-size:11px;color:var(--txt-mid)"><?=htmlspecialchars($r['phone']??'')?></span></div>
-  <?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeSuspect(<?=$r['suspect_id']?>)"><i data-lucide="x"></i></button><?php endif; ?>
- </div>
- <?php endwhile; ?>
- </div>
+ <div class="tbl-wrap"><table>
+  <thead><tr><th>Name</th><th>Phone</th><th>Note</th><th></th></tr></thead>
+  <tbody>
+  <?php if(empty($suspects)): ?>
+  <tr class="empty-row"><td colspan="4">No suspects added.</td></tr>
+  <?php else: foreach($suspects as $r): ?>
+  <tr id="sc-<?=$r['suspect_id']?>">
+   <td><?=htmlspecialchars($r['first_name'].' '.$r['last_name'])?></td>
+   <td><?=htmlspecialchars($r['phone']??'—')?></td>
+   <td><?=htmlspecialchars($r['note']??'—')?></td>
+   <td><?php if(can('edit')): ?><button class="btn btn-danger btn-xs" onclick="removeSuspect(<?=$r['suspect_id']?>)"><i data-lucide="x"></i></button><?php endif; ?></td>
+  </tr>
+  <?php endforeach; endif; ?>
+  </tbody>
+ </table></div>
 </div>
 </div>
 
@@ -156,55 +202,27 @@ include 'header.php';
   <button class="btn btn-primary btn-sm" onclick="addHearing()"><i data-lucide="save"></i> Schedule</button>
  </div>
  <?php endif; ?>
- <div id="hearings-list">
- <?php while($r=mysqli_fetch_assoc($hearings)):
-  $vb=match($r['verdict']??''){'Guilty'=>'b-red','Not Guilty'=>'b-green','Pending'=>'b-orange',default=>'b-muted'};
- ?>
- <div class="affil-chip" id="hc-<?=$r['hearing_id']?>">
-  <div style="flex:1">
-   <strong style="color:var(--txt)"><?=htmlspecialchars($r['court_name']??'—')?></strong>
-   <span style="color:var(--txt-mid);font-size:12px;margin-left:8px"><?=fmt_date($r['hearing_date'])?></span>
-   <br><span class="badge <?=$vb?>" style="margin-top:3px"><?=$r['verdict']?></span>
-   <span style="font-size:11px;color:var(--txt-mid);margin-left:8px">Judge: <?=htmlspecialchars($r['judge_name']??'—')?></span>
-  </div>
-  <a href="edit_hearing.php?id=<?=$r['hearing_id']?>" class="btn btn-ghost btn-xs"><i data-lucide="edit-2"></i></a>
- </div>
- <?php endwhile; ?>
- </div>
+ <div class="tbl-wrap"><table>
+  <thead><tr><th>Court</th><th>Judge</th><th>Date</th><th>Verdict</th><th>Next Date</th><th></th></tr></thead>
+  <tbody>
+  <?php if(empty($hearings)): ?>
+  <tr class="empty-row"><td colspan="6">No hearings scheduled.</td></tr>
+  <?php else: foreach($hearings as $r): $vb=match($r['verdict']??''){'Guilty'=>'b-red','Not Guilty'=>'b-green','Pending'=>'b-orange',default=>'b-muted'}; ?>
+  <tr id="hc-<?=$r['hearing_id']?>">
+   <td><?=htmlspecialchars($r['court_name']??'—')?></td>
+   <td><?=htmlspecialchars($r['judge_name']??'—')?></td>
+   <td><?=fmt_date($r['hearing_date'])?></td>
+   <td><span class="badge <?=$vb?>"><?=htmlspecialchars($r['verdict']??'—')?></span></td>
+   <td><?=($r['next_hearing_date']?fmt_date($r['next_hearing_date']):'—')?></td>
+   <td><?php if(can('edit')): ?><a href="edit_hearing.php?id=<?=$r['hearing_id']?>" class="btn btn-ghost btn-xs"><i data-lucide="edit-2"></i></a><?php endif; ?></td>
+  </tr>
+  <?php endforeach; endif; ?>
+  </tbody>
+ </table></div>
 </div>
 </div>
 
-<!-- WARRANTS TAB -->
-<div class="tab-pane" id="tab-warrants">
-<div class="section-card">
- <div class="section-hdr"><h3>Warrants</h3><?php if(can('edit')): ?><button class="btn btn-ghost btn-sm" onclick="toggleForm('addWarrantForm')"><i data-lucide="plus"></i> Issue Warrant</button><?php endif; ?></div>
- <?php if(can('edit')): ?>
- <div id="addWarrantForm" style="display:none;margin-bottom:12px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
-  <div class="form-grid">
-   <div class="form-group"><label>Type</label><select id="w_type"><option>Arrest</option><option>Search</option><option>Other</option></select></div>
-   <div class="form-group"><label>Criminal</label><select id="w_crim"><option value="0">-- None --</option><?php mysqli_data_seek($all_criminals,0);while($cr=mysqli_fetch_assoc($all_criminals)): ?><option value="<?=$cr['criminal_id']?>"><?=htmlspecialchars($cr['first_name'].' '.$cr['last_name'])?></option><?php endwhile; ?></select></div>
-   <div class="form-group"><label>Issued Date</label><input type="date" id="w_iss" value="<?=date('Y-m-d')?>"></div>
-   <div class="form-group"><label>Expiry Date</label><input type="date" id="w_exp"></div>
-   <div class="form-group full"><label>Notes</label><textarea id="w_nt"></textarea></div>
-  </div>
-  <button class="btn btn-primary btn-sm" onclick="addWarrant()"><i data-lucide="save"></i> Issue</button>
- </div>
- <?php endif; ?>
- <div id="warrants-list">
- <?php while($r=mysqli_fetch_assoc($warrants)):
-  $sb=match($r['status']){'Active'=>'b-blue','Expired'=>'b-muted','Executed'=>'b-green',default=>'b-muted'};
- ?>
- <div class="affil-chip" id="wc-<?=$r['warrant_id']?>">
-  <div style="flex:1">
-   <span class="badge b-red"><?=$r['type']?></span>
-   <span class="badge <?=$sb?>" style="margin-left:6px"><?=$r['status']?></span>
-   <br><span style="font-size:12px;color:var(--txt-mid);margin-top:3px;display:block"><?=$r['cname']?htmlspecialchars($r['cname']):'No criminal linked'?> · Expires <?=fmt_date($r['expiry_date'])?></span>
-  </div>
- </div>
- <?php endwhile; ?>
- </div>
-</div>
-</div>
+
 </div><!-- end tabGroup -->
 
 <!-- Search Modal -->
@@ -247,7 +265,7 @@ function post(url,data){
 function toggleForm(id){var el=document.getElementById(id);el.style.display=el.style.display==='none'?'block':'none';}
 
 function saveCase(){
- post('ajax/case_affil.php',{action:'update_case',case_id:CASE_ID,title:document.getElementById('c_title').value,case_status:document.getElementById('c_status').value,open_date:document.getElementById('c_open').value,close_date:document.getElementById('c_close').value,description:document.getElementById('c_desc').value})
+ post('ajax/case_affil.php',{action:'update_case',case_id:CASE_ID,title:document.getElementById('c_title').value,case_status:document.getElementById('c_status').value,lead_officer_id:document.getElementById('c_lead').value,open_date:document.getElementById('c_open').value,close_date:document.getElementById('c_close').value,description:document.getElementById('c_desc').value})
  .then(r=>toast(r.ok?'Case saved!':r.msg,r.ok));
 }
 
@@ -284,10 +302,7 @@ function addHearing(){
  .then(r=>{if(r.ok){location.reload();}else toast(r.msg,false);});
 }
 
-function addWarrant(){
- post('ajax/case_affil.php',{action:'add_warrant',case_id:CASE_ID,type:document.getElementById('w_type').value,criminal_id:document.getElementById('w_crim').value,issued_date:document.getElementById('w_iss').value,expiry_date:document.getElementById('w_exp').value,notes:document.getElementById('w_nt').value})
- .then(r=>{if(r.ok){location.reload();}else toast(r.msg,false);});
-}
+
 
 function openSearch(type){
  searchType=type;

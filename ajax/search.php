@@ -33,7 +33,7 @@ if($type==='all'||$type==='case'){
  if($cat)    $w[]="cr.crime_type='$cat'";
  if($from)   $w[]="c.open_date>='$from'";
  if($to)     $w[]="c.open_date<='$to'";
- $res=mysqli_query($conn,"SELECT 'case' AS entity_type,c.case_id AS id,CONCAT('Case #',c.case_id,IFNULL(CONCAT(' — ',c.title),'')) AS name,c.case_status AS status,NULL AS photo,cr.crime_type AS extra FROM Case_Record c JOIN Crime cr ON c.crime_id=cr.crime_id WHERE ".implode(' AND ',$w)." LIMIT 20");
+ $res=mysqli_query($conn,"SELECT 'case' AS entity_type,c.case_id AS id,CASE WHEN c.title IS NULL OR c.title='' THEN CONCAT('Case #',c.case_id) ELSE CONCAT('Case #',c.case_id,' — ',c.title) END AS name,c.case_status AS status,NULL AS photo,cr.crime_type AS extra FROM Case_Record c JOIN Crime cr ON c.crime_id=cr.crime_id WHERE ".implode(' AND ',$w)." LIMIT 20");
  while($r=mysqli_fetch_assoc($res)) $results[]=$r;
 }
 
