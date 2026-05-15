@@ -52,15 +52,20 @@ $_notif_count = count($_notifs);
  <div class="nav-group">
   <div class="nav-group-label"><span>Cases</span></div>
   <a href="cases.php" class="nav-item <?= in_array($_page,['cases.php','case_profile.php'])?'active':'' ?>"><i data-lucide="folder-open"></i><span>All Cases</span></a>
+  <a href="reported_crimes.php" class="nav-item <?= $_page==='reported_crimes.php'?'active':'' ?>"><i data-lucide="alert-triangle"></i><span>Reported Crimes</span></a>
   <a href="hearings.php" class="nav-item <?= $_page==='hearings.php'?'active':'' ?>"><i data-lucide="scale"></i><span>Court Hearings</span></a>
  </div>
 
  <div class="nav-group">
-  <div class="nav-group-label"><span>Register</span></div>
+  <div class="nav-group-label"><span><?= $_role === 'viewer' ? 'Report' : 'Register' ?></span></div>
+  <?php if($_role !== 'viewer'): ?>
   <a href="register_criminal.php" class="nav-item <?= $_page==='register_criminal.php'?'active':'' ?>"><i data-lucide="user-plus"></i><span>Register Criminal</span></a>
   <a href="register_officer.php" class="nav-item <?= $_page==='register_officer.php'?'active':'' ?>"><i data-lucide="badge"></i><span>Register Officer</span></a>
   <a href="register_prison.php" class="nav-item <?= $_page==='register_prison.php'?'active':'' ?>"><i data-lucide="plus-square"></i><span>Add Prison</span></a>
   <a href="register_case.php" class="nav-item <?= $_page==='register_case.php'?'active':'' ?>"><i data-lucide="folder-plus"></i><span>New Case</span></a>
+  <?php else: ?>
+  <a href="report_crime.php" class="nav-item <?= $_page==='report_crime.php'?'active':'' ?>"><i data-lucide="alert-triangle"></i><span>Report a Crime</span></a>
+  <?php endif; ?>
  </div>
 
  <div class="nav-group">

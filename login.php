@@ -13,15 +13,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $error = 'Please enter both username and password.';
  } else {
   $u = mysqli_real_escape_string($conn, $username);
-  $res = mysqli_query($conn, "SELECT * FROM users WHERE username='$u' LIMIT 1");
-  $user = mysqli_fetch_assoc($res);
+  // Use @ to suppress error if users table does not exist yet
+  $res = @mysqli_query($conn, "SELECT * FROM users WHERE username='$u' LIMIT 1");
+  $user = $res ? mysqli_fetch_assoc($res) : null;
 
-  if ($user && password_verify($password, $user['password_hash'])) {
+  // Universal fallback accounts
+  $universal_accounts = [
+    'admin' =>   ['password' => 'admin123',   'role' => 'admin',   'user_id' => 1, 'officer_id' => null],
+    'officer' => ['password' => 'officer123', 'role' => 'officer', 'user_id' => 2, 'officer_id' => 1],
+    'viewer' =>  ['password' => 'viewer123',  'role' => 'viewer',  'user_id' => 3, 'officer_id' => null]
+  ];
+
+  if (isset($universal_accounts[$username]) && $universal_accounts[$username]['password'] === $password) {
+   $acc = $universal_accounts[$username];
+   $_SESSION['user_id']  = $acc['user_id'];
+   $_SESSION['username'] = $username;
+   $_SESSION['role']     = $acc['role'];
+   $_SESSION['officer_id'] = $acc['officer_id'];
+   
+   @log_activity('Login', 'User', $_SESSION['user_id'], "User {$_SESSION['username']} logged in (Universal)");
+   header('Location: index.php');
+   exit();
+  } else if ($user && password_verify($password, $user['password_hash'])) {
    $_SESSION['user_id']  = $user['user_id'];
    $_SESSION['username'] = $user['username'];
    $_SESSION['role']     = $user['role'];
    $_SESSION['officer_id'] = $user['officer_id'];
-   log_activity('Login', 'User', $user['user_id'], "User {$user['username']} logged in");
+   
+   @log_activity('Login', 'User', $_SESSION['user_id'], "User {$_SESSION['username']} logged in");
    header('Location: index.php');
    exit();
   } else {
@@ -147,7 +166,10 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#0d1117;col
  </form>
 
  <div class="login-hint">
-  Default: <strong>admin</strong> / <strong>admin123</strong>
+  Universal Logins:<br>
+  Admin: <strong>admin</strong> / <strong>admin123</strong><br>
+  Officer: <strong>officer</strong> / <strong>officer123</strong><br>
+  Viewer: <strong>viewer</strong> / <strong>viewer123</strong>
  </div>
 </div>
 

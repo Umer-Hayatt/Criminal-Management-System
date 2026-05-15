@@ -1,5 +1,10 @@
 <?php
 include 'db.php';
+require_login();
+if($_SESSION['role'] === 'viewer') {
+ header('Location: index.php');
+ exit();
+}
 $pageTitle = 'Add Prison';
 if($_SERVER['REQUEST_METHOD']==='POST'){
  $n=esc($conn,$_POST['prison_name']);

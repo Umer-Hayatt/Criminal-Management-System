@@ -29,6 +29,8 @@ function can(string $action): bool {
   'edit'   => in_array($role, ['admin','officer']),
   'view'   => true,
   'admin'  => $role === 'admin',
+  'register' => in_array($role, ['admin','officer']),
+  'report_crime' => true,
   default  => false
  };
 }

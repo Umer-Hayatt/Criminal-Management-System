@@ -1,5 +1,10 @@
 <?php
 include 'db.php';
+require_login();
+if($_SESSION['role'] === 'viewer') {
+ header('Location: index.php');
+ exit();
+}
 $pageTitle='New Case';
 $errors=[];
 if($_SERVER['REQUEST_METHOD']==='POST'){
@@ -41,7 +46,7 @@ include 'header.php';
   <div class="form-group"><label>Crime *</label>
    <select name="crime_id" required>
     <option value="">-- Select Crime --</option>
-    <?php while($c=mysqli_fetch_assoc($crimes)): ?><option value="<?=$c['crime_id']?>"><?=$c['crime_type']?> — <?=htmlspecialchars(substr($c['description']??$c['location']??'',0,40))?></option><?php endwhile; ?>
+    <?php $sc = $_GET['crime_id'] ?? 0; while($c=mysqli_fetch_assoc($crimes)): ?><option value="<?=$c['crime_id']?>" <?= $c['crime_id'] == $sc ? 'selected' : '' ?>><?=$c['crime_type']?> — <?=htmlspecialchars(substr($c['description']??$c['location']??'',0,40))?></option><?php endwhile; ?>
    </select>
   </div>
   <div class="form-group"><label>Case Status</label><select name="case_status"><option>Open</option><option>Under Investigation</option><option>Closed</option></select></div>

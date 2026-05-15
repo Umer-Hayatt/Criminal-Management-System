@@ -51,6 +51,7 @@ include 'header.php';
    </div>
   </div>
   <div style="display:flex;gap:8px">
+   <a href="export_case.php?id=<?=$id?>" target="_blank" class="btn btn-primary btn-sm"><i data-lucide="download"></i> Export Report</a>
    <?php if(can('delete')): ?><button onclick="confirmDelete('delete_case.php?id=<?=$id?>','Delete Case #<?=$id?>?','Remove Case #<?=$id?> and all records?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Delete</button><?php endif; ?>
   </div>
  </div>
