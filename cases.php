@@ -56,8 +56,9 @@ $cases =mysqli_query($conn,"SELECT c.*,cr.crime_type,(SELECT COUNT(*) FROM case_
    <td><span class="badge b-red"><?=$r['crim_count']?></span></td>
    <td><span class="badge b-blue"><?=$r['off_count']?></span></td>
    <td><?=fmt_date($r['open_date'])?></td>
-   <td><div class="td-actions">
+    <td><div class="td-actions">
     <a href="case_profile.php?id=<?=$r['case_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="eye"></i> View</a>
+    <?php if(can('edit')): ?><a href="export_case.php?id=<?=$r['case_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="download"></i></a><?php endif; ?>
     <?php if(can('delete')): ?><button onclick="confirmDelete('delete_case.php?id=<?=$r['case_id']?>','Delete Case #<?=$r['case_id']?>?','Remove Case #<?=$r['case_id']?> and all associated records?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i></button><?php endif; ?>
    </div></td>
   </tr>

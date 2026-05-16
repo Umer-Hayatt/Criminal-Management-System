@@ -2,6 +2,8 @@
 include 'db.php';
 require_login();
 
+if(!can('edit')){ set_flash('error','Permission denied.'); header('Location: index.php'); exit(); }
+
 $id = intval($_GET['id'] ?? 0);
 if(!$id) die('Invalid Case ID');
 
