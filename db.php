@@ -109,4 +109,59 @@ function db_row($conn, string $sql): ?array {
  $r = mysqli_query($conn, $sql);
  return $r ? mysqli_fetch_assoc($r) : null;
 }
+
+// ── Viewer access requests ───────────────────
+function ensure_viewer_access_table(): void {
+ global $conn;
+ mysqli_query($conn,
+   "CREATE TABLE IF NOT EXISTS viewer_access (
+      user_id INT PRIMARY KEY,
+      requested_at DATETIME NULL,
+      granted TINYINT(1) DEFAULT 0,
+      granted_by INT NULL,
+      granted_at DATETIME NULL,
+      revoked_at DATETIME NULL
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+ );
+}
+
+function has_view_permission(int $user_id): bool {
+ global $conn;
+ ensure_viewer_access_table();
+ $r = mysqli_fetch_assoc(mysqli_query($conn,"SELECT granted FROM viewer_access WHERE user_id=$user_id"));
+ return $r && intval($r['granted'])===1;
+}
+
+function request_view_permission(int $user_id): void {
+ global $conn;
+ ensure_viewer_access_table();
+ $now = date('Y-m-d H:i:s');
+ $exists = mysqli_fetch_assoc(mysqli_query($conn,"SELECT user_id FROM viewer_access WHERE user_id=$user_id"));
+ if($exists){
+   mysqli_query($conn,"UPDATE viewer_access SET requested_at='$now' WHERE user_id=$user_id");
+ } else {
+   mysqli_query($conn,"INSERT INTO viewer_access(user_id,requested_at,granted) VALUES($user_id,'$now',0)");
+ }
+}
+
+function grant_view_permission(int $user_id, int $admin_id): void {
+ global $conn;
+ ensure_viewer_access_table();
+ $now = date('Y-m-d H:i:s');
+ mysqli_query($conn,"REPLACE INTO viewer_access(user_id,requested_at,granted,granted_by,granted_at,revoked_at) VALUES($user_id,NULL,1,$admin_id,'$now',NULL)");
+}
+
+function revoke_view_permission(int $user_id, int $admin_id): void {
+ global $conn;
+ ensure_viewer_access_table();
+ $now = date('Y-m-d H:i:s');
+ mysqli_query($conn,"UPDATE viewer_access SET granted=0, revoked_at='$now', granted_by=$admin_id WHERE user_id=$user_id");
+}
+
+function get_view_requests(): array {
+ global $conn;
+ ensure_viewer_access_table();
+ $res = mysqli_query($conn,"SELECT va.*,u.username,u.role FROM viewer_access va LEFT JOIN users u ON va.user_id=u.user_id ORDER BY va.requested_at DESC");
+ $rows=[]; while($r=mysqli_fetch_assoc($res)) $rows[]=$r; return $rows;
+}
 ?>

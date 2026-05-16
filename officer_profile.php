@@ -27,9 +27,9 @@ $photo=$officer['photo']??null;
    </div>
   </div>
  </div>
- <?php if(can('edit')||can('delete')): ?>
+ <?php if(can('admin')||can('delete')): ?>
  <div style="position:absolute;bottom:16px;right:16px;display:flex;gap:8px">
-  <?php if(can('edit')): ?><a href="edit_officer.php?id=<?=$id?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i> Edit</a><?php endif; ?>
+  <?php if(can('admin')): ?><a href="edit_officer.php?id=<?=$id?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i> Edit</a><?php endif; ?>
   <?php if(can('delete')): ?><button onclick="confirmDelete('delete_officer.php?id=<?=$id?>','Remove Officer?','Remove <?=htmlspecialchars(addslashes($officer['first_name'].' '.$officer['last_name']))?> from the system?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Remove</button><?php endif; ?>
  </div>
  <?php endif; ?>

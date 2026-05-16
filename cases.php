@@ -1,7 +1,24 @@
 <?php
 include 'db.php';
+require_login();
 $pageTitle='Cases';
 include 'header.php';
+
+// If user is a viewer, require explicit permission to view cases
+if(($_SESSION['role'] ?? '') === 'viewer' && !has_view_permission($_SESSION['user_id'] ?? 0)){
+ ?>
+ <div class="page-hdr">
+  <div class="page-hdr-left">
+   <div class="page-hdr-icon"><i data-lucide="folder-open"></i></div>
+   <div><h2>All Cases</h2><p>Access restricted — request permission to view.</p></div>
+  </div>
+  <a href="request_view.php" class="btn btn-primary"><i data-lucide="unlock"></i> Request Access</a>
+ </div>
+ <div class="card"><div style="padding:20px">You don't currently have permission to view cases. Click Request Access to ask an admin for permission.</div></div>
+ <?php
+ include 'footer.php';
+ exit();
+}
 $total =mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record"))[0];
 $open  =mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record WHERE case_status='Open'"))[0];
 $inv   =mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Case_Record WHERE case_status='Under Investigation'"))[0];

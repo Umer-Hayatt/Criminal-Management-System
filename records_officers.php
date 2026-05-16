@@ -9,7 +9,7 @@ $total=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Officer"))[0];
   <div class="page-hdr-icon"><i data-lucide="shield"></i></div>
   <div><h2>Officers</h2><p><?=$total?> registered investigating officers</p></div>
  </div>
- <?php if(can('edit')): ?><a href="register_officer.php" class="btn btn-primary"><i data-lucide="badge"></i> Register Officer</a><?php endif; ?>
+ <?php if(can('admin')): ?><a href="register_officer.php" class="btn btn-primary"><i data-lucide="badge"></i> Register Officer</a><?php endif; ?>
 </div>
 <div class="card">
  <div class="tbl-wrap"><table>
@@ -32,7 +32,7 @@ $total=mysqli_fetch_row(mysqli_query($conn,"SELECT COUNT(*) FROM Officer"))[0];
    <td><?=htmlspecialchars($r['phone']??'—')?></td>
    <td><div class="td-actions">
     <a href="officer_profile.php?id=<?=$r['officer_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="eye"></i> Profile</a>
-    <?php if(can('edit')): ?><a href="edit_officer.php?id=<?=$r['officer_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i></a><?php endif; ?>
+    <?php if(can('admin')): ?><a href="edit_officer.php?id=<?=$r['officer_id']?>" class="btn btn-ghost btn-sm"><i data-lucide="edit-2"></i></a><?php endif; ?>
     <?php if(can('delete')): ?><button onclick="confirmDelete('delete_officer.php?id=<?=$r['officer_id']?>','Delete Officer?','Remove <?=htmlspecialchars(addslashes($r['first_name'].' '.$r['last_name']))?> permanently?')" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i></button><?php endif; ?>
    </div></td>
   </tr>

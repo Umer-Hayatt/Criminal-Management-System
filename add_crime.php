@@ -1,5 +1,7 @@
 <?php
 include 'db.php';
+require_login();
+if(!can('edit')){ set_flash('error','Permission denied.'); header('Location: index.php'); exit(); }
 $criminal_id = intval($_GET['id']);
 if(!$criminal_id){header("Location: records_criminals.php");exit();}
 

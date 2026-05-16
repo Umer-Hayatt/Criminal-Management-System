@@ -1,7 +1,7 @@
 <?php
 include 'db.php';
 require_login();
-if($_SESSION['role'] === 'viewer') {
+if(!can('admin')) {
  header('Location: index.php');
  exit();
 }

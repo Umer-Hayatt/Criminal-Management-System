@@ -79,7 +79,7 @@ if(!empty($lc_rows)): ?>
 <!-- CRIMES -->
 <div class="tab-pane" id="tab-crimes">
 <div class="section-card">
- <div class="section-hdr"><h3>Crime History</h3><a href="add_crime.php?id=<?=$id?>" class="btn btn-ghost btn-sm"><i data-lucide="plus"></i> Add Crime</a></div>
+<div class="section-hdr"><h3>Crime History</h3><?php if(can('edit')): ?><a href="add_crime.php?id=<?=$id?>" class="btn btn-ghost btn-sm"><i data-lucide="plus"></i> Add Crime</a><?php endif; ?></div>
  <?php $cr_rows=[]; while($r=mysqli_fetch_assoc($crimes)) $cr_rows[]=$r; ?>
  <?php if(empty($cr_rows)): ?><div class="no-data">No crimes linked.</div>
  <?php else: ?><div class="tbl-wrap"><table>

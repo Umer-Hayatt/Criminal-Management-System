@@ -58,11 +58,13 @@ $_notif_count = count($_notifs);
 
  <div class="nav-group">
   <div class="nav-group-label"><span><?= $_role === 'viewer' ? 'Report' : 'Register' ?></span></div>
-  <?php if($_role !== 'viewer'): ?>
+  <?php if($_role === 'admin'): ?>
   <a href="register_criminal.php" class="nav-item <?= $_page==='register_criminal.php'?'active':'' ?>"><i data-lucide="user-plus"></i><span>Register Criminal</span></a>
   <a href="register_officer.php" class="nav-item <?= $_page==='register_officer.php'?'active':'' ?>"><i data-lucide="badge"></i><span>Register Officer</span></a>
   <a href="register_prison.php" class="nav-item <?= $_page==='register_prison.php'?'active':'' ?>"><i data-lucide="plus-square"></i><span>Add Prison</span></a>
   <a href="register_case.php" class="nav-item <?= $_page==='register_case.php'?'active':'' ?>"><i data-lucide="folder-plus"></i><span>New Case</span></a>
+  <?php elseif($_role === 'officer'): ?>
+  <a href="register_criminal.php" class="nav-item <?= $_page==='register_criminal.php'?'active':'' ?>"><i data-lucide="user-plus"></i><span>Register Criminal</span></a>
   <?php else: ?>
   <a href="report_crime.php" class="nav-item <?= $_page==='report_crime.php'?'active':'' ?>"><i data-lucide="alert-triangle"></i><span>Report a Crime</span></a>
   <?php endif; ?>
@@ -74,6 +76,7 @@ $_notif_count = count($_notifs);
   <a href="activity_log.php" class="nav-item <?= $_page==='activity_log.php'?'active':'' ?>"><i data-lucide="activity"></i><span>Activity Log</span></a>
   <?php if(can('admin')): ?>
   <a href="analytics.php" class="nav-item <?= $_page==='analytics.php'?'active':'' ?>"><i data-lucide="bar-chart-2"></i><span>Analytics</span></a>
+    <a href="viewer_permissions.php" class="nav-item <?= $_page==='viewer_permissions.php'?'active':'' ?>"><i data-lucide="eye"></i><span>Viewer Requests</span></a>
   <?php endif; ?>
  </div>
 

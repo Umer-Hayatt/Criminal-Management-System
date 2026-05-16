@@ -1,5 +1,10 @@
 <?php
 include 'db.php';
+require_login();
+if(!can('admin')){
+ set_flash('error','Permission denied.');
+ header("Location: records_officers.php"); exit();
+}
 $id=intval($_GET['id']);
 if(!$id){header("Location: records_officers.php");exit();}
 if($_SERVER['REQUEST_METHOD']==='POST'){
